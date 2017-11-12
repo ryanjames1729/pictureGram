@@ -22,11 +22,46 @@ app = Flask(__name__)
 Bootstrap(app)
 app.secret_key = "howsitgoingbro1234508234129458751239487"
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+firstTime = False
+
+class Users(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(25))
+    email = db.Column(db.String(15))
+    password = db.Column(db.String(80))
+    admin = db.Column(db.Boolean)
+
+
 @app.route("/")
 def index():
 
 
     return render_template('index.html')
+
+
+
+@app.route("/login", methods=['GET','POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        email = request.form['username']
+        password = request.form['password']
+        user = Users.query.filter_by(email=email).first()
+        if user:
+            if user.password == password:
+                return render_template('profile.html', name=user.name)
+            else:
+                error='Invalid Credentials. Please try again.'
+        else:
+            error='You have not signed up for an account yet.'
+    return render_template('login.html', error=error)
+
+
 
 @app.errorhandler(404)
 def page_not_found(e):
