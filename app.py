@@ -36,13 +36,14 @@ class Users(UserMixin, db.Model):
     password = db.Column(db.String(80))
     admin = db.Column(db.Boolean)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return Users.query.get(int(user_id))
 
 @app.route("/")
 def index():
 
-
     return render_template('index.html')
-
 
 
 @app.route("/login", methods=['GET','POST'])
@@ -51,16 +52,19 @@ def login():
     if request.method == 'POST':
         email = request.form['username']
         password = request.form['password']
-        user = Users.query.filter_by(email=email).first()
-        if user:
-            if user.password == password:
-                return render_template('profile.html', name=user.name)
+        current_user = Users.query.filter_by(email=email).first()
+        if current_user:
+            if current_user.password == password:
+                return render_template('profile.html', name=current_user.name)
             else:
                 error='Invalid Credentials. Please try again.'
         else:
             error='You have not signed up for an account yet.'
     return render_template('login.html', error=error)
 
+@app.route("/feed")
+def feed():
+    return render_template('feed.html', img='static/img/code-tweet.jpg')
 
 
 @app.errorhandler(404)
