@@ -25,11 +25,26 @@
         </ul>
       </div>
   </nav>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+  {% if messages %}
+    {% for category, message in messages %}
+    <div class="col-sm-4 col-md-offset-4">
+      <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <!-- <strong>Title</strong> --> <p class='text-center'>{{ message }}</p>
+      </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 
     <div id="content">{% block content %}{% endblock %}</div>
     <div id="footer">
         {% block footer %}
-        &copy; Made by Ryan James
+
+        &copy; Made by Ryan James...
         {% endblock %}
     </div>
 

@@ -29,12 +29,25 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 firstTime = False
 
+
+
+
+###--------------------------
+# File upload handler
+###--------------------------
+
+photos = UploadSet('photos', IMAGES)
+app.config['UPLOADED_PHOTOS_DEST'] = 'static/img'
+configure_uploads(app, photos)
+
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25))
     email = db.Column(db.String(15))
     password = db.Column(db.String(80))
     admin = db.Column(db.Boolean)
+
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -43,32 +56,53 @@ def load_user(user_id):
 @app.route("/")
 def index():
 
-    return render_template('index.html')
 
+    return render_template('index.html')
 
 @app.route("/login", methods=['GET','POST'])
 def login():
+    global current_user
     error = None
     if request.method == 'POST':
         email = request.form['username']
         password = request.form['password']
         current_user = Users.query.filter_by(email=email).first()
+
+        print("Auth?: " + str(current_user.is_authenticated))
         if current_user:
             if current_user.password == password:
+                login_user(current_user)
+
+                print("Auth?: " + str(current_user.is_authenticated))
                 return render_template('profile.html', name=current_user.name)
             else:
                 error='Invalid Credentials. Please try again.'
+                flash("Wrong Password")
         else:
             error='You have not signed up for an account yet.'
+
+
     return render_template('login.html', error=error)
 
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash('You are now logged out.')
+    return redirect(url_for('index'))
+
 @app.route("/feed")
+@login_required
 def feed():
-    return render_template('feed.html', img='static/img/code-tweet.jpg')
+    print("Auth?: " + str(current_user.is_authenticated))
+
+
+    return render_template('feed.html', img='static/img/code-tweet.jpg', form=form)
 
 
 @app.errorhandler(404)
 def page_not_found(e):
+
     return render_template('404.html'), 404
 
 ###--------------------------
