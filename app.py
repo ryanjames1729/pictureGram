@@ -2,7 +2,7 @@ from flask import Flask, flash, redirect, render_template, request, session, abo
 from flask_sqlalchemy import SQLAlchemy
 from wtforms import *
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField
+from flask_wtf.file import FileField, FileRequired
 from wtforms.validators import InputRequired, Email, Length
 from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -47,7 +47,14 @@ class Users(UserMixin, db.Model):
     password = db.Column(db.String(80))
     admin = db.Column(db.Boolean)
 
+class Pictures(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(25))
+    file = db.Column(db.String(25))
+    date = db.Column(db.String(25))
 
+class PhotoForm(FlaskForm):
+    photo = FileField(validators=[FileRequired()])
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -95,9 +102,25 @@ def logout():
 @login_required
 def feed():
     print("Auth?: " + str(current_user.is_authenticated))
+    pictures = Pictures.query.all()
 
 
-    return render_template('feed.html', img='static/img/code-tweet.jpg', form=form)
+    return render_template('feed.html', pictures=pictures)
+
+@app.route("/upload", methods=['GET', 'POST'])
+def upload():
+    form = PhotoForm()
+    if form.validate_on_submit():
+        f = form.photo.data
+        filename = secure_filename(f.filename)
+        f.save('static/img/' + filename)
+        print("File saved!")
+
+        return redirect(url_for('feed'))
+
+
+
+    return render_template('upload.html', form=form)
 
 
 @app.errorhandler(404)
