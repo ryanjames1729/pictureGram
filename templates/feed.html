@@ -1,14 +1,20 @@
 {% extends "base.html" %} {% block title %} Feed {% endblock %} {% block content %}
 <div class="jumbotron">
   <div class="container" style="text-align:center">
-  
+
 
   </div>
 </div
 <div class="jumbotron">
   <div class="container" style="text-align:center">
     {% for item in pictures %}
-      <img src= "static/img/{{item.file}}" alt="" style="text-align:center; height:400px; width: 400px"><br>
+    <div class="card border-primary">
+      <div class="card-body">
+        <h6 style="color:red; text-align:left; margin-left:400px">{{item.email}}</h6>
+        <img src= "static/img/{{item.file}}" alt="" style="text-align:center; height:400px; width: 400px"><br>
+        <h6 style="text-align:right; margin-right:400px">{{item.date}}</h6>
+  </div>
+</div>      
     {% endfor %}
     </div>
   </div>

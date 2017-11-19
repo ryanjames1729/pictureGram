@@ -7,10 +7,13 @@
 
   </div>
 </div>
-<form class="form" method="POST" enctype="multipart/form-data" action="/">
 
+<div class="jumbotron">
+  <div class="container">
+<form class="form" method="POST" enctype="multipart/form-data" action="/upload">
 
-  {{form.photo}}
+  {{ form.hidden_tag() }}
+  {{ wtf.form_field(form.image) }}
 
 
   <!-- Submit button -->
@@ -18,5 +21,8 @@
   <input class="btn btn-primary" type="submit" value="Upload">
 
   </form>
+</div>
+</div>
+
 
 {% endblock %}

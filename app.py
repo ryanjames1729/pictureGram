@@ -54,7 +54,7 @@ class Pictures(db.Model):
     date = db.Column(db.String(25))
 
 class PhotoForm(FlaskForm):
-    photo = FileField(validators=[FileRequired()])
+    image = FileField('Upload your image here.')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -103,6 +103,7 @@ def logout():
 def feed():
     print("Auth?: " + str(current_user.is_authenticated))
     pictures = Pictures.query.all()
+    pictures.reverse()
 
 
     return render_template('feed.html', pictures=pictures)
@@ -110,13 +111,21 @@ def feed():
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
     form = PhotoForm()
+    f = form.image.data
+    today = str(date.today())
     if form.validate_on_submit():
-        f = form.photo.data
-        filename = secure_filename(f.filename)
-        f.save('static/img/' + filename)
-        print("File saved!")
+        try:
+            filename = secure_filename(f.filename)
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            f.save(os.path.join(basedir, app.config['UPLOADED_PHOTOS_DEST'], filename))
+            new_photo = Pictures(email = current_user.email, file = filename, date = today)
+            db.session.add(new_photo)
+            db.session.commit()
 
-        return redirect(url_for('feed'))
+            file_path = app.config['UPLOADED_PHOTOS_DEST'] + "/" + filename
+            print('Path fo file is: ' + file_path)
+        except:
+            flash("File did not upload correctly.")
 
 
 
