@@ -7,8 +7,7 @@ from wtforms.validators import InputRequired, Email, Length
 from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-import random
-import os, time
+import random, os, time, config
 from werkzeug.utils import secure_filename
 from flask.ext.uploads import UploadSet, configure_uploads, IMAGES
 from O365 import Message
@@ -59,12 +58,52 @@ class PhotoForm(FlaskForm):
     image = FileField('Upload your image here.')
     caption = StringField('What\'s going on in this picture?')
 
+def message(new_user):
+        # Basic variables for authorization:
+
+    email = config.EMAIL
+    pwd = config.PW
+    auth = (email, pwd)
+    # Message object:
+    m = Message(auth=auth)
+    # Recipients
+    m.setRecipients(new_user)
+    # Subject:
+    m.setSubject('Thanks for Signing Up')
+    # Body:
+    user = Users.query.filter_by(email=new_user).first()
+    uname = user.usname
+    name = user.name
+    m.setBody('Hello, {}.\n\n Thanks for signing up for an account on PicShare.\n\nYour user name is: {}\n\nLogin and start sharing pictures!\n -Ava'.format(name, uname))
+    # Send:
+    m.sendMessage()
+
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(int(user_id))
 
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def index():
+    global current_user
+    error = None
+    if request.method == 'POST':
+        usname = request.form['username']
+        password = request.form['password']
+        current_user = Users.query.filter_by(usname=usname).first()
+
+        print("Auth?: " + str(current_user.is_authenticated))
+        if current_user:
+            if current_user.password == password:
+                login_user(current_user)
+
+                print("Auth?: " + str(current_user.is_authenticated))
+                return render_template('profile.html', name=current_user.name)
+            else:
+                error='Invalid Credentials. Please try again.'
+                flash("Wrong Password")
+        else:
+            error='You have not signed up for an account yet.'
+            return render_template('index.html', error=error)
 
 
     return render_template('index.html')
@@ -74,9 +113,9 @@ def login():
     global current_user
     error = None
     if request.method == 'POST':
-        email = request.form['username']
+        usname = request.form['username']
         password = request.form['password']
-        current_user = Users.query.filter_by(email=email).first()
+        current_user = Users.query.filter_by(usname=usname).first()
 
         print("Auth?: " + str(current_user.is_authenticated))
         if current_user:
@@ -100,6 +139,21 @@ def logout():
     logout_user()
     flash('You are now logged out.')
     return redirect(url_for('index'))
+
+@app.route("/signup", methods=['GET','POST'])
+def signup():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+        user = email[:(email.index("@"))]
+        new_user = Users(name=name, email=email, usname=user, password=password, admin=0)
+        db.session.add(new_user)
+        db.session.commit()
+        message(email)
+        flash("Check your e-mail for account confirmation.")
+
+    return render_template("signup.html")
 
 @app.route("/feed")
 @login_required
