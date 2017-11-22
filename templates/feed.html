@@ -7,15 +7,23 @@
 </div
 <div class="jumbotron">
   <div class="container" style="text-align:center">
-    {% for item in pictures %}
-    <div class="card border-primary">
-      <div class="card-body">
-        <h6 style="color:red; text-align:left; margin-left:400px">{{item.email}}</h6>
-        <img src= "static/img/{{item.file}}" alt="" style="text-align:center; height:400px; width: 400px"><br>
-        <h6 style="text-align:right; margin-right:400px">{{item.date}}</h6>
-  </div>
-</div>      
-    {% endfor %}
+    <div class="row">
+      <div class="col-sm">
+        <ul class="list-group">
+        {% for item in pictures %}
+        <li class="list-group-item list-group-item-action disabled">
+          <span class="tag tag-default tag-pill float-xs-right">
+        <h4 style="color:red; text-align:left; margin-left:400px">{{item.usname}}</h4>
+        <img src= "static/img/{{item.file}}" class="rounded" alt="" style="text-align:center; height:400px; width: 400px"><br>
+        <h4 style="text-align:left; margin-left:400px; color:black"><strong>{{item.usname}}</strong>: {{item.caption}} </h4>
+        <h6 style="text-align:right; margin-right:400px; color:gray">{{item.date}}</h6>
+      </li>
+    </span>
+        <br><br><br>
+        {% endfor %}
+      </ul>
+      </div>
+    </div>
     </div>
   </div>
 {% endblock %}

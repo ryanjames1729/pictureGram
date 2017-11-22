@@ -44,17 +44,20 @@ class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25))
     email = db.Column(db.String(15))
+    usname = db.Column(db.String(15))
     password = db.Column(db.String(80))
     admin = db.Column(db.Boolean)
 
 class Pictures(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(25))
+    usname = db.Column(db.String(25))
     file = db.Column(db.String(25))
     date = db.Column(db.String(25))
+    caption = db.Column(db.String(300))
 
 class PhotoForm(FlaskForm):
     image = FileField('Upload your image here.')
+    caption = StringField('What\'s going on in this picture?')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -109,6 +112,7 @@ def feed():
     return render_template('feed.html', pictures=pictures)
 
 @app.route("/upload", methods=['GET', 'POST'])
+@login_required
 def upload():
     form = PhotoForm()
     f = form.image.data
@@ -118,7 +122,7 @@ def upload():
             filename = secure_filename(f.filename)
             basedir = os.path.abspath(os.path.dirname(__file__))
             f.save(os.path.join(basedir, app.config['UPLOADED_PHOTOS_DEST'], filename))
-            new_photo = Pictures(email = current_user.email, file = filename, date = today)
+            new_photo = Pictures(usname = current_user.usname, file = filename, date = today, caption = str(form.caption.data))
             db.session.add(new_photo)
             db.session.commit()
 
