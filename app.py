@@ -189,6 +189,12 @@ def upload():
 
     return render_template('upload.html', form=form)
 
+@app.route("/like", methods=['GET', 'POST'])
+@login_required
+def like():
+
+    return redirect(url_for('feed.html'))
+
 
 @app.errorhandler(404)
 def page_not_found(e):
